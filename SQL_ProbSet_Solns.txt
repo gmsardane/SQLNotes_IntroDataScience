@@ -1,0 +1,133 @@
+DataScience Assignment 2:
+Using: matrix.db andreuters.db
+(a) Select
+σ10398_txt_earn(frequency)
+
+SELECT count(*) FROM (
+SELECT docid
+FROM frequency
+WHERE docid = "10398_txt_earn") x;
+
+ANS: 138
+
+(b) select project
+πterm(σdocid=10398_txt_earn and count=1(frequency))
+
+SELECT count(*) FROM (
+SELECT term
+FROM frequency
+WHERE docid = "10398_txt_earn" and count = 1) x;
+
+ANS: 110
+
+
+(c) union
+SELECT count(*) FROM (
+SELECT * FROM frequency
+WHERE docid = "10398_txt_earn" and count = 1
+UNION
+SELECT * FROM frequency
+WHERE docid = '925_txt_trade' and count = 1) x;
+
+ANS: 335
+
+(d) count
+SELECT count(*) from(
+    SELECT * from FREQUENCY
+    WHERE term = 'parliament')
+
+
+(e) big document
+
+SELECT COUNT(*) FROM ( SELECT docid, sum(count)
+FROM frequency
+GROUP BY docid
+HAVING sum(count) > 300
+order by sum(count))
+
+OR
+SELECT COUNT(*) FROM (
+SELECT docid, total_term  from(
+SELECT docid, sum(count) as total_term
+FROM frequency
+GROUP BY docid)
+WHERE total_term > 300
+ORDER BY total_term)
+
+ANS: 107
+
+
+
+(f) two words
+
+SELECT count(*) from(
+SELECT distinct(docid), count( docid) as CountOf from (SELECT *
+FROM frequency
+where term = 'transactions' OR TERM='world')
+GROUP BY docid)
+WHERE COUNTOF = 2
+
+====Another way=====
+
+select count(*)
+from (select distinct(docid)
+from frequency
+where term ='transactions'
+and count>0
+
+intersect
+
+select distinct(docid)
+from frequency
+where term='world'
+and count>0
+)
+;
+
+
+ANS: 3
+
+(f) Matrix multiplication
+SELECT A.row_num, B.col_num, sum(A.value*B.value)
+FROM A, B
+WHERE A.col_num = B.row_num
+GROUP BY A.row_num, B.col_num
+
+ANs: AB(row, col) = AB(2, 3) = 2874
+
+
+(g) Similarity
+
+SELECT product 
+from(
+     SELECT f1.docid, f2.docid,  sum(f1.count*f2.count) as product --This is the product of DDT
+     from frequency as f1, frequency as f2 
+     WHERE f1.term= f2.term AND f1.docid = '10080_txt_crude' and 
+     f2.docid= '17035_txt_earn'
+     GROUP BY f1.docid, f2.docid)
+
+ANS: 19
+
+(h) More similarity
+
+CREATE VIEW frequency_with_q AS
+SELECT * FROM frequency --table q ic constructed
+UNION
+SELECT 'q' as docid, 'washington' as term, 1 as count 
+UNION
+SELECT 'q' as docid, 'taxes' as term, 1 as count
+UNION 
+SELECT 'q' as docid, 'treasury' as term, 1 as count;
+
+SELECT max(product) 
+from(
+     SELECT f1.docid, f2.docid,  sum(f1.count*f2.count) as product --This is the product of DDT
+     from frequency_with_q as f1, frequency_with_q as f2 
+     WHERE f1.term= f2.term AND f1.docid = 'q' 
+     GROUP BY f1.docid, f2.docid)
+     
+ANS: 6
+
+
+
+
